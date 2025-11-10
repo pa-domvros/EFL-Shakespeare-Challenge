@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shakespeare Challenge</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Use Inter as the default sans-serif font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Use Merriweather for a more "classic" feel for headers */
+        h1, h2, h3 {
+            font-family: 'Merriweather', serif;
+        }
+        /* Simple loading spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Toggle button active state */
+        .toggle-btn-active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: #ffffff;
+            font-weight: 500;
+        }
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 400px;
+            width: 90%;
+        }
+        .dice {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #4f46e5;
+            min-height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        /* Added from your index.html for the shake animation */
+        .rolling {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+          10%, 90% { transform: translate3d(-1px, 0, 0); }
+          20%, 80% { transform: translate3d(2px, 0, 0); }
+          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+          40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* --- Print Styles (Diary-Only Version - Subtractive Method) --- */
+        @media print {
+            /* 1. Reset body for printing */
+            body {
+                padding: 1cm !important;
+                margin: 0 !important;
+                font-family: 'Times New Roman', Times, serif;
+                background-color: #fff !important;
+                color: #000 !important;
+                min-height: 0 !important;
+            }
+
+            /* 2. Hide all non-essential elements */
+            header,
+            .main-prompt-card,
+            #character-library,
+            #speaking-column,
+            #print-btn-container {
+                display: none !important;
+            }
+
+            /* 3. Ensure the main content grid and writing column are visible but basic */
+            .main-content-grid {
+                display: block !important;
+                grid-template-columns: 1fr !important;
+            }
+            
+            #writing-section {
+                display: block !static !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* 4. Hide interactive elements within the writing section */
+            #writing-input, /* Hide the textarea */
+            #get-feedback-btn, /* Hide the button */
+            .writing-ai-header, /* Hide the "AI Writing Feedback" paragraph */
+            #feedback-loader, /* Hide the loader */
+            #print-btn {
+                display: none !important;
+            }
+
+            /* 5. Style the titles for printing */
+            #writing-task-title,
+            #feedback-title {
+                display: block !important;
+                font-family: 'Times New Roman', Times, serif !important;
+                font-size: 16pt !important;
+                font-weight: bold !important;
+                color: #000 !important;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin-top: 20px;
+                margin-bottom: 10px;
+                padding: 0 !important;
+            }
+            #writing-task-title {
+                margin-top: 0 !important; /* No top margin for the first title */
+            }
+            
+            /* 6. Ensure wrappers are visible but plain */
+            #writing-section > div,
+            #feedback-section > div {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            /* 7. Style the student's text and AI feedback for printing */
+            #writing-output-print,
+            #feedback-output {
+                display: block !important;
+                white-space: pre-wrap !important; 
+                font-family: 'Times New Roman', Times, serif !important;
+                font-size: 12pt !important;
+                color: #000 !important;
+                background: #f9f9f9 !important; /* Light background to separate it */
+                border: 1px solid #ccc !important;
+                padding: 1em !important;
+                min-height: 50px !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+            
+            #feedback-output {
+                margin-top: 5px !important; /* Add space above feedback */
+            }
+        }
+        
+        /* Default state for print-only div */
+        #writing-output-print {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800 p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-8 flex flex-col md:flex-row items-center justify-center gap-4">
+            <!-- Logo: Assumes 'pdhub-logo.png' is in the same folder -->
+            <img src="pdhub-logo.png" alt="Logo" class="w-20 h-20 md:w-24 md:h-24" onerror="this.style.display='none'">
+            <div>
+                <h1 class="text-3xl md:text-5xl font-bold text-slate-800 mb-2">EFL Shakespeare Challenge</h1>
+                <p class="text-xl md:text-2xl text-slate-600">B2+ Speaking & Writing Practice</p>
+            </div>
+        </header>
+
+        <!-- Main Prompt Card -->
+        <div class="bg-rose-700 text-white p-6 md:p-10 rounded-xl shadow-lg text-center mb-8 main-prompt-card">
+            <h2 class="text-2xl md:text-4xl font-bold">"You can live the life of one Shakespeare character for the day. Who's it going to be?"</h2>
+        </div>
+
+        <!-- === NEW SECTION: CHARACTER LIBRARY & DICE ROLL === -->
+        <div id="character-library" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8">
+            <h3 class="text-2xl font-bold text-indigo-800 mb-4 text-center">Character Library</h3>
+            <p class="text-center text-stone-600 mb-4">Explore the characters, then roll the dice to be assigned one!</p>
+            
+            <!-- Toggle Buttons -->
+            <div class="flex justify-center space-x-2 mb-4">
+                <button id="toggle-male" class="toggle-btn-active px-5 py-2 rounded-lg border border-indigo-600">Male Characters</button>
+                <button id="toggle-female" class="px-5 py-2 rounded-lg border border-indigo-600 text-indigo-600 hover:bg-indigo-50">Female Characters</button>
+            </div>
+
+            <!-- Character Grid -->
+            <div id="character-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <!-- Characters will be populated here by JS -->
+            </div>
+
+            <!-- Roll Dice Button -->
+            <div class="text-center">
+                <button id="roll-dice-btn" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-indigo-700 transition-colors shadow-lg">
+                    Roll the Dice!
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 main-content-grid">
+            <!-- === LEFT COLUMN: SPEAKING === -->
+            <div id="speaking-column" class="space-y-6">
+                
+                <!-- Speaking Task Card -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                    <h3 class="text-2xl font-bold text-blue-800 mb-4">Part 1: Speaking Task</h3>
+                    <p class="mb-4">Prepare a 2-minute speech to justify your choice (or the character you were assigned!). Your goal is to be persuasive and descriptive. Cover these points:</p>
+                    <ul class="list-disc list-inside space-y-2 mb-4">
+                        <li><strong>State your choice:</strong> "I would choose to be..." / "I was assigned..."</li>
+                        <li><strong>Give 2-3 reasons:</strong> "My first reason is...", "Additionally, I'd be fascinated to see..."</li>
+                        <li><strong>Speculate on your day:</strong> "I imagine my day would start with...", "Later, I would probably...", "I would try to avoid..."</li>
+                    </ul>
+                    
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <h4 class="font-bold text-blue-700 mb-2">B2+ Language Focus:</h4>
+                        <ul class="text-sm list-disc list-inside">
+                            <li><strong>Modals of Speculation:</strong> `might`, `could`, `would`, `must have been`</li>
+                            <li><strong>Conditionals:</strong> "If I were Hamlet, I would..."</li>
+                            <li><strong>Rich Vocabulary:</strong> `fascinating`, `tragic`, `cunning`, `ambitious`, `melancholy`, `witty`</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Speaking Helper Card - NOW ENRICHED -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                    <h3 class="text-2xl font-bold text-blue-800 mb-4">Speaking & Help Library</h3>
+                    
+                    <!-- New Enriched Content -->
+                    <div class="space-y-4 mb-6">
+                        <h4 class="font-bold text-blue-700 mb-2">Key Character Vocabulary (B2+):</h4>
+                        <div class="flex flex-wrap gap-2 text-sm mb-4">
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">ambitious</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">cunning</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">melancholy</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">witty</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">impulsive</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">manipulative</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">courageous</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">tragic</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">resourceful</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">gullible</span>
+                        </div>
+                        
+                        <h4 class="font-bold text-blue-700 mb-2">Useful Phrases for Your Speech:</h4>
+                        <ul class="text-sm list-disc list-inside space-y-1 text-stone-700">
+                            <li><strong>Stating your choice:</strong> "The character I've chosen is...", "I'm most intrigued by...", "I was assigned..."</li>
+                            <li><strong>Giving reasons:</strong> "My primary reason is...", "What fascinates me most about (him/her) is...", "On top of that, I'd love to experience..."</li>
+                            <li><strong>Speculating on the day:</strong> "If I were in their shoes, I would probably...", "I imagine my day would be chaotic/fascinating/dangerous because...", "I'd make sure to avoid..."</li>
+                        </ul>
+                    </div>
+
+                    <!-- AI Helper section (now supplementary) -->
+                    <div class="mt-6 border-t border-stone-200 pt-4">
+                        <h4 class="font-bold text-blue-700 mb-2 speaking-ai-header">AI Idea Helper</h4>
+                        <p class="mb-4 text-sm text-stone-600 speaking-ai-header">Still stuck? Ask the AI for help. Try: "What's the main conflict for Romeo?" or "Give me 3 more words to describe Iago."</p>
+                        <div class="flex space-x-2 mb-4">
+                            <input type="text" id="speaking-prompt" class="flex-grow border border-stone-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ask for specific ideas...">
+                            <button id="get-ideas-btn" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">Get Ideas</button>
+                        </div>
+                        <div id="speaking-loader" class="hidden my-4 flex justify-center">
+                            <div class="spinner"></div>
+                        </div>
+                        <div id="speaking-output" class="text-sm text-stone-700 bg-stone-50 border border-stone-200 p-4 rounded-lg min-h-[50px]"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- === RIGHT COLUMN: WRITING === -->
+            <!-- Added id="writing-section" for print styling -->
+            <div id="writing-section" class="space-y-6">
+                <!-- Writing Task Card -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                    <!-- Added id="writing-task-title" for print styling -->
+                    <h3 id="writing-task-title" class="text-2xl font-bold text-green-800 mb-4">Part 2: Writing Task</h3>
+                    <p class="mb-4">Now, write a short diary entry (around 100-150 words) from the perspective of your chosen character. What happened during your day? What are you thinking or feeling?</p>
+                    <ul class="list-disc list-inside space-y-2 mb-4">
+                        <li><strong>Start the entry:</strong> "Dear Diary," or "What a day..."</li>
+                        <li><strong>Use the first person:</strong> "I felt...", "I saw...", "I cannot believe..."</li>
+                        <li><strong>Show, don't just tell:</strong> Instead of "I was angry," try "My blood boiled when..."</li>
+                    </ul>
+                    <textarea id="writing-input" rows="8" class="w-full border border-stone-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Dear Diary,&#10;Today was..."></textarea>
+                    
+                    <!-- Hidden div for printing the textarea content -->
+                    <div id="writing-output-print" class="text-stone-800"></div>
+                </div>
+
+                <!-- Writing Feedback Card -->
+                <!-- Added id="feedback-section" for print styling -->
+                <div id="feedback-section" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                    <!-- Added id="feedback-title" for print styling -->
+                    <h3 id="feedback-title" class="text-2xl font-bold text-green-800 mb-4 writing-ai-header">AI Writing Feedback</h3>
+                    <p class="mb-4 text-sm text-stone-600 writing-ai-header">When you're ready, paste your diary entry above and click the button below to get B2-level feedback from your AI tutor.</p>
+                    <button id="get-feedback-btn" class="bg-green-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors w-full">Get Feedback on My Writing</button>
+                    
+                    <div id="feedback-loader" class="hidden my-4 flex justify-center">
+                        <div class="spinner"></div>
+                    </div>
+                    <div id="feedback-output" class="mt-4 text-sm text-stone-700 bg-stone-50 border border-stone-200 p-4 rounded-lg min-h-[50px]"></div>
+                </div>
+            </div>
+        </div> <!-- This closes the main content grid -->
+        
+        <!-- Print Button -->
+        <div id="print-btn-container" class="text-center mt-10">
+            <button id="print-btn" class="bg-gray-700 text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-800 transition-colors shadow-lg">
+                Print or Save Work (PDF)
+            </button>
+        </div>
+
+
+        <!-- Footer -->
+        <footer class="text-center mt-12 text-stone-500 text-sm">
+            <p>✨✍️ Created by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</p>
+        </footer>
+    </div>
+
+    <!-- === DICE ROLL MODAL === -->
+    <div id="dice-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 id="modal-title" class="text-2xl font-bold text-indigo-800 mb-4">Roll for your Character!</h2>
+            
+            <!-- Dice structure from your index.html -->
+            <div id="dice-container" class="py-4 flex justify-center">
+                <div id="dice-face" class="w-28 h-28 md:w-32 md:h-32 cursor-pointer">
+                    <!-- Image will be set by JS -->
+                    <img id="dice-image" alt="Click the dice to roll" class="w-full h-full">
+                </div>
+            </div>
+            
+            <p id="roll-result" class="text-xl font-medium text-stone-700 min-h-[2.5em]">Click the dice to roll!</p>
+            <h3 id="character-assignment" class="text-3xl font-bold text-rose-600 min-h-[1.5em]"></h3>
+
+            <button id="close-modal-btn" class="mt-6 bg-stone-500 text-white px-5 py-2 rounded-lg font-medium hover:bg-stone-600 transition-colors">Close</button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Character Data ---
+        const characterData = {
+            male: [
+                { 
+                    name: "Hamlet", 
+                    play: "Hamlet", 
+                    description: "The Prince of Denmark, Hamlet is thoughtful, philosophical, and melancholic. He struggles with indecision and revenge after his father's ghost reveals he was murdered by Hamlet's uncle, Claudius.",
+                    plot: "A tragedy of revenge. Prince Hamlet must decide how to avenge his father's murder, leading to widespread madness, corruption, and death in the Danish court." 
+                },
+                { 
+                    name: "Macbeth", 
+                    play: "Macbeth", 
+                    description: "A brave and loyal Scottish general who, driven by ambition and his wife's encouragement, murders King Duncan to seize the throne after hearing a prophecy from three witches.",
+                    plot: "A dark tragedy about the corrupting power of ambition. A prophecy sets Macbeth on a bloody path to become king, leading to paranoia, guilt, and civil war."
+                },
+                { 
+                    name: "Romeo", 
+                    play: "Romeo and Juliet", 
+                    description: "A passionate, impulsive, and romantic young man from the Montague family. He falls instantly in love with Juliet, a member of the rival Capulet family, leading to tragic consequences.",
+                    plot: "A famous tragedy about 'star-crossed lovers'. The children of two feuding families fall in love, but their secret romance cannot escape the cycle of violence, and it ends in their deaths."
+                },
+                { 
+                    name: "Iago", 
+                    play: "Othello", 
+                    description: "One of Shakespeare's most villainous characters. He is a master manipulator who pretends to be loyal while secretly plotting revenge against his general, Othello, by planting seeds of jealousy.",
+                    plot: "A tragedy of jealousy and deceit. The villain Iago convinces his general, Othello, that his wife Desdemona is unfaithful, leading Othello to destroy both her and himself."
+                },
+                { 
+                    name: "Prospero", 
+                    play: "The Tempest", 
+                    description: "The former Duke of Milan, who was exiled to a magical island with his daughter. He has spent 12 years mastering magic and commands the spirit Ariel. He is powerful, calculating, and ultimately, forgiving.",
+                    plot: "A romance about magic, revenge, and forgiveness. Prospero uses his magical powers to create a storm (a 'tempest') to shipwreck his old enemies on his island, finally confronting them."
+                },
+                { 
+                    name: "Mercutio", 
+                    play: "Romeo and Juliet", 
+                    description: "Romeo's best friend. He is witty, cynical about love, and hot-headed. He is neither a Montague nor a Capulet but gets drawn into their feud with fatal results.",
+                    plot: "A famous tragedy about 'star-crossed lovers'. The children of two feuding families fall in love, but their secret romance cannot escape the cycle of violence, and it ends in their deaths."
+                }
+            ],
+            female: [
+                { 
+                    name: "Juliet", 
+                    play: "Romeo and Juliet", 
+                    description: "A young, intelligent, and strong-willed woman from the Capulet family. She starts as innocent but quickly matures when she falls in love with Romeo and defies her family's wishes.",
+                    plot: "A famous tragedy about 'star-crossed lovers'. The children of two feuding families fall in love, but their secret romance cannot escape the cycle of violence, and it ends in their deaths."
+                },
+                { 
+                    name: "Lady Macbeth", 
+                    play: "Macbeth", 
+                    description: "Macbeth's highly ambitious wife. She questions her husband's manhood and convinces him to commit murder. She is ruthless and determined, but is later driven mad by guilt.",
+                    plot: "A dark tragedy about the corrupting power of ambition. A prophecy sets Macbeth on a bloody path to become king, leading to paranoia, guilt, and civil war."
+                },
+                { 
+                    name: "Ophelia", 
+                    play: "Hamlet", 
+                    description: "A gentle noblewoman, daughter of Polonius. She is in love with Hamlet but is manipulated by her father and brother. She becomes a victim of the court's corruption and descends into madness.",
+                    plot: "A tragedy of revenge. Prince Hamlet must decide how to avenge his father's murder, leading to widespread madness, corruption, and death in the Danish court."
+                },
+                { 
+                    name: "Rosalind", 
+                    play: "As You Like It", 
+                    description: "One of Shakespeare's most intelligent and witty heroines. When exiled by her cruel uncle, she disguises herself as a young man named 'Ganymede' and finds freedom and love in the Forest of Arden.",
+                    plot: "A famous comedy about love, exile, and disguise. Characters flee from a corrupt court to the Forest of Arden, where they find love and freedom, often while in disguise."
+                },
+                { 
+                    name: "Beatrice", 
+                    play: "Much Ado About Nothing", 
+                    description: "A sharp-tongued, clever, and independent woman who is fiercely cynical about love. She engages in a 'merry war' of wits with Benedick, and they are tricked into falling in love with each other.",
+                    plot: "A comedy about misunderstanding and romance. One couple is tricked into falling in love (Beatrice and Benedick), while another is nearly torn apart by a cruel lie (Hero and Claudio)."
+                },
+                { 
+                    name: "Cleopatra", 
+                    play: "Antony and Cleopatra", 
+                    description: "The powerful, charismatic, and dramatic Queen of Egypt. She is a brilliant political leader and the lover of the Roman general Mark Antony. Their passionate affair leads to a war with Rome and their tragic end.",
+                    plot: "A tragedy based on history. The love affair between the Roman general Mark Antony and the Egyptian queen Cleopatra is a political scandal that leads to a massive war and their eventual suicides."
+                }
+            ]
+        };
+
+        let selectedGender = 'male'; // Default
+
+        // --- DOM Elements ---
+        const characterGrid = document.getElementById('character-grid');
+        const toggleMaleBtn = document.getElementById('toggle-male');
+        const toggleFemaleBtn = document.getElementById('toggle-female');
+        const rollDiceBtn = document.getElementById('roll-dice-btn');
+        const diceModal = document.getElementById('dice-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        
+        // --- New Elements for your dice logic ---
+        const modalTitle = document.getElementById('modal-title');
+        const diceFace = document.getElementById('dice-face');
+        const diceImage = document.getElementById('dice-image');
+        const rollResult = document.getElementById('roll-result');
+        const characterAssignment = document.getElementById('character-assignment');
+
+        // --- Print Elements ---
+        const printBtn = document.getElementById('print-btn');
+        const writingInput = document.getElementById('writing-input');
+        const writingOutputPrint = document.getElementById('writing-output-print');
+
+        let isRolling = false;
+
+        // Dice Image URLs (using SVGs as placeholders for your local files)
+        const diceImages = [
+            'dice1.png', // Dice 1
+            'dice2.png', // Dice 2
+            'dice3.png', // Dice 3
+            'dice4.png', // Dice 4
+            'dice5.png', // Dice 5
+            'dice6.png'  // Dice 6
+        ];
+        // Using a styled placeholder to match your `dice-question.png`
+        const defaultImage = 'dice-question.png';
+        
+        // Preload images for smooth animation
+        [...diceImages, defaultImage].forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+
+        // --- Function to populate characters ---
+        function populateCharacters(gender) {
+            if (!characterGrid) return; // Add check
+            characterGrid.innerHTML = ''; // Clear existing cards
+            const characters = characterData[gender];
+            
+            characters.forEach(char => {
+                const card = document.createElement('div');
+                card.className = 'bg-stone-50 border border-stone-200 p-4 rounded-lg shadow-sm flex flex-col'; // Added flex
+                card.innerHTML = `
+                    <h4 class="font-bold text-lg text-indigo-700">${char.name}</h4>
+                    <p class="text-sm text-stone-500 italic mb-2">${char.play}</p>
+                    <p class="text-sm text-stone-700 mb-3"><span class="font-semibold">Character:</span> ${char.description}</p>
+                    <p class="text-sm text-stone-700 mt-auto pt-3 border-t border-stone-200"><span class="font-semibold">Plot:</span> ${char.plot}</p>
+                `;
+                characterGrid.appendChild(card);
+            });
+        }
+
+        // --- Toggle Button Logic ---
+        if (toggleMaleBtn) {
+            toggleMaleBtn.addEventListener('click', () => {
+                if (selectedGender !== 'male') {
+                    selectedGender = 'male';
+                    populateCharacters('male');
+                    toggleMaleBtn.classList.add('toggle-btn-active');
+                    toggleMaleBtn.classList.remove('text-indigo-600', 'hover:bg-indigo-50');
+                    if (toggleFemaleBtn) {
+                        toggleFemaleBtn.classList.remove('toggle-btn-active');
+                        toggleFemaleBtn.classList.add('text-indigo-600', 'hover:bg-indigo-50');
+                    }
+                }
+            });
+        }
+
+        if (toggleFemaleBtn) {
+            toggleFemaleBtn.addEventListener('click', () => {
+                if (selectedGender !== 'female') {
+                    selectedGender = 'female';
+                    populateCharacters('female');
+                    toggleFemaleBtn.classList.add('toggle-btn-active');
+                    toggleFemaleBtn.classList.remove('text-indigo-600', 'hover:bg-indigo-50');
+                    if (toggleMaleBtn) {
+                        toggleMaleBtn.classList.remove('toggle-btn-active');
+                        toggleMaleBtn.classList.add('text-indigo-600', 'hover:bg-indigo-50');
+                    }
+                }
+            });
+        }
+
+        // --- Dice Roll Logic ---
+        // This function combines your roll logic with the character assignment
+        function handleDiceRoll() {
+            if (isRolling) return;
+            isRolling = true;
+
+            const characters = characterData[selectedGender];
+            
+            // Start animation (from your index.html)
+            if (diceFace) diceFace.classList.add('rolling');
+            if (diceImage) diceImage.src = defaultImage;
+            if (modalTitle) modalTitle.textContent = 'Rolling...';
+            if (rollResult) rollResult.textContent = 'Your fate awaits...';
+            if (characterAssignment) characterAssignment.textContent = ''; // Clear previous result
+
+            setTimeout(() => {
+                // Get the result
+                const roll = Math.floor(Math.random() * 6); // 0-5
+                const assignedCharacter = characters[roll];
+
+                // Update UI
+                if (diceImage) diceImage.src = diceImages[roll];
+                if (modalTitle) modalTitle.textContent = 'Roll for your Character!';
+                if (rollResult) rollResult.textContent = `You rolled a ${roll + 1}! You have been assigned:`;
+                if (characterAssignment) characterAssignment.textContent = assignedCharacter.name;
+                
+                // End animation (from your index.html)
+                if (diceFace) diceFace.classList.remove('rolling');
+                isRolling = false;
+            }, 600); // 600ms to match the shake animation
+        }
+
+        // Button now opens the modal and sets its initial state
+        if (rollDiceBtn) {
+            rollDiceBtn.addEventListener('click', () => {
+                if(diceModal) diceModal.classList.remove('hidden');
+                // Set initial state every time modal is opened
+                if (diceImage) diceImage.src = defaultImage;
+                if (modalTitle) modalTitle.textContent = 'Roll for your Character!';
+                if (rollResult) rollResult.textContent = 'Click the dice to roll!';
+                if (characterAssignment) characterAssignment.textContent = '';
+                isRolling = false; // Ensure isRolling is false when opening
+            });
+        }
+        
+        if (diceFace) {
+            diceFace.addEventListener('click', handleDiceRoll);
+        }
+
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                if(diceModal) diceModal.classList.add('hidden');
+                isRolling = false; // Stop any roll in progress
+            });
+        }
+
+        // --- Print Button Logic ---
+        if (printBtn) {
+            printBtn.addEventListener('click', () => {
+                // 1. Copy text from textarea to the print-only div
+                if (writingInput && writingOutputPrint) {
+                    writingOutputPrint.innerText = writingInput.value;
+                }
+                // 2. Call the browser's print function
+                window.print();
+            });
+        }
+
+
+        // --- Initial Load ---
+        populateCharacters('male'); // Load male characters by default
+        
+        // Final check: Set initial dice image on load
+        if(diceImage) {
+            diceImage.src = defaultImage;
+        }
+
+
+        // --- Gemini API Configuration ---
+        const apiKey = ""; // This will be auto-populated in the environment.
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+        // --- Helper Function to sleep ---
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // --- Main Function to call Gemini API with Exponential Backoff ---
+        async function callGemini(prompt, systemInstruction, outputElementId, loaderElementId) {
+            const outputElement = document.getElementById(outputElementId);
+            const loaderElement = document.getElementById(loaderElementId);
+
+            if (!outputElement || !loaderElement) {
+                console.error("Error: Missing UI elements for API call.");
+                return;
+            }
+
+            loaderElement.classList.remove('hidden');
+            outputElement.textContent = '';
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: {
+                    parts: [{ text: systemInstruction }]
+                },
+            };
+
+            let retries = 5;
+            let delay = 1000;
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        // Replace newlines with <br> for proper HTML rendering
+                        outputElement.innerHTML = text.replace(/\n/g, '<br>');
+                    } else {
+                        outputElement.textContent = 'Error: Could not extract text from API response. Please try again.';
+                        console.error('Invalid API response structure:', result);
+                    }
+                    
+                    loaderElement.classList.add('hidden');
+                    return; // Success, exit the loop
+
+                } catch (error) {
+                    console.error(`Attempt ${i+1} failed:`, error);
+                    if (i < retries - 1) {
+                        await sleep(delay);
+                        delay *= 2; // Exponential backoff
+                    } else {
+                        outputElement.textContent = 'Error: Unable to get a response from the AI. Please check your connection and try again.';
+                        loaderElement.classList.add('hidden');
+                    }
+                }
+            }
+        }
+
+        // --- Event Listener for Speaking Helper ---
+        const getIdeasBtn = document.getElementById('get-ideas-btn');
+        if (getIdeasBtn) {
+            getIdeasBtn.addEventListener('click', () => {
+                const prompt = document.getElementById('speaking-prompt').value;
+                if (!prompt) {
+                    const speakingOutput = document.getElementById('speaking-output');
+                    if (speakingOutput) speakingOutput.textContent = 'Please enter a prompt first.';
+                    return;
+                }
+                
+                const systemInstruction = "You are a friendly and encouraging EFL tutor. The B2-level student wants ideas for a speaking task about Shakespeare. Provide concise, helpful ideas in simple bullet points (max 3-4 points).";
+                
+                callGemini(prompt, systemInstruction, 'speaking-output', 'speaking-loader');
+            });
+        }
+
+        // --- Event Listener for Writing Feedback ---
+        const getFeedbackBtn = document.getElementById('get-feedback-btn');
+        if (getFeedbackBtn) {
+            getFeedbackBtn.addEventListener('click', () => {
+                const studentText = document.getElementById('writing-input').value;
+                if (!studentText || studentText.trim().length < 20) {
+                    const feedbackOutput = document.getElementById('feedback-output');
+                    if (feedbackOutput) feedbackOutput.textContent = 'Please write a diary entry (at least 20 words) before asking for feedback.';
+                    return;
+                }
+
+                const prompt = `Here is my diary entry:\n\n${studentText}`;
+                
+                const systemInstruction = `You are an expert EFL teacher grading a B2-level student's creative writing. Your task is to provide feedback on their diary entry.
+1.  Start with one positive and encouraging comment.
+2.  Gently point out 2-3 specific, high-value errors related to B2-level grammar, vocabulary, or style (e.g., wrong tense, misused word, awkward phrasing).
+3.  For each error, briefly explain *why* it's an error and suggest a correction.
+4.  Keep your total feedback concise (under 100 words) and use clear, supportive language. Do not rewrite the entire text.`;
+                
+                callGemini(prompt, systemInstruction, 'feedback-output', 'feedback-loader');
+            });
+        }
+        
+    </script>
+</body>
+</html>
