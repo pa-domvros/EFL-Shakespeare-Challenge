@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shakespeare Challenge</title>
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Use Inter font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
@@ -95,6 +93,7 @@
 
             /* 2. Hide all non-essential elements */
             header,
+            .image-container, /* Hide the new image on print */
             .main-prompt-card,
             #character-library,
             #speaking-column,
@@ -109,7 +108,7 @@
             }
             
             #writing-section {
-                display: block !static !important;
+                display: block !important;
                 box-shadow: none !important;
                 border: none !important;
                 padding: 0 !important;
@@ -184,38 +183,34 @@
 <body class="bg-stone-100 text-stone-800 p-4 md:p-8 min-h-screen">
 
     <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <header class="text-center mb-8 flex flex-col md:flex-row items-center justify-center gap-4">
-            <!-- Logo: Assumes 'pdhub-logo.png' is in the same folder -->
+        <header class="text-center mb-6 flex flex-col md:flex-row items-center justify-center gap-4">
             <img src="pdhub-logo.png" alt="Logo" class="w-20 h-20 md:w-24 md:h-24" onerror="this.style.display='none'">
             <div>
                 <h1 class="text-3xl md:text-5xl font-bold text-slate-800 mb-2">EFL Shakespeare Challenge</h1>
-                <p class="text-xl md:text-2xl text-slate-600">B2+ Speaking & Writing Practice</p>
+                <p class="text-xl md:text-2xl text-slate-600"></p>
             </div>
         </header>
 
-        <!-- Main Prompt Card -->
-        <div class="bg-rose-700 text-white p-6 md:p-10 rounded-xl shadow-lg text-center mb-8 main-prompt-card">
-            <h2 class="text-2xl md:text-4xl font-bold">"You can live the life of one Shakespeare character for the day. Who's it going to be?"</h2>
+        <div class="text-center mb-8 main-prompt-card">
+            <h2 class="text-2xl md:text-3xl font-bold text-rose-700">"You can live the life of one Shakespeare character for the day.<br> Who's it going to be?"</h2>
         </div>
 
-        <!-- === NEW SECTION: CHARACTER LIBRARY & DICE ROLL === -->
+        <div class="flex justify-center mb-8 image-container">
+            <img src="image.png" alt="Shakespeare Theme" class="h-96 w-auto rounded-xl shadow-md object-cover" onerror="this.style.display='none'">
+        </div>
+
         <div id="character-library" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8">
             <h3 class="text-2xl font-bold text-indigo-800 mb-4 text-center">Character Library</h3>
             <p class="text-center text-stone-600 mb-4">Explore the characters, then roll the dice to be assigned one!</p>
             
-            <!-- Toggle Buttons -->
             <div class="flex justify-center space-x-2 mb-4">
                 <button id="toggle-male" class="toggle-btn-active px-5 py-2 rounded-lg border border-indigo-600">Male Characters</button>
                 <button id="toggle-female" class="px-5 py-2 rounded-lg border border-indigo-600 text-indigo-600 hover:bg-indigo-50">Female Characters</button>
             </div>
 
-            <!-- Character Grid -->
             <div id="character-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <!-- Characters will be populated here by JS -->
-            </div>
+                </div>
 
-            <!-- Roll Dice Button -->
             <div class="text-center">
                 <button id="roll-dice-btn" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-indigo-700 transition-colors shadow-lg">
                     Roll the Dice!
@@ -223,12 +218,9 @@
             </div>
         </div>
 
-        <!-- Main Content Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 main-content-grid">
-            <!-- === LEFT COLUMN: SPEAKING === -->
             <div id="speaking-column" class="space-y-6">
                 
-                <!-- Speaking Task Card -->
                 <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
                     <h3 class="text-2xl font-bold text-blue-800 mb-4">Part 1: Speaking Task</h3>
                     <p class="mb-4">Prepare a 2-minute speech to justify your choice (or the character you were assigned!). Your goal is to be persuasive and descriptive. Cover these points:</p>
@@ -248,11 +240,9 @@
                     </div>
                 </div>
 
-                <!-- Speaking Helper Card - NOW ENRICHED -->
                 <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
                     <h3 class="text-2xl font-bold text-blue-800 mb-4">Speaking & Help Library</h3>
                     
-                    <!-- New Enriched Content -->
                     <div class="space-y-4 mb-6">
                         <h4 class="font-bold text-blue-700 mb-2">Key Character Vocabulary (B2+):</h4>
                         <div class="flex flex-wrap gap-2 text-sm mb-4">
@@ -276,7 +266,6 @@
                         </ul>
                     </div>
 
-                    <!-- AI Helper section (now supplementary) -->
                     <div class="mt-6 border-t border-stone-200 pt-4">
                         <h4 class="font-bold text-blue-700 mb-2 speaking-ai-header">AI Idea Helper</h4>
                         <p class="mb-4 text-sm text-stone-600 speaking-ai-header">Still stuck? Ask the AI for help. Try: "What's the main conflict for Romeo?" or "Give me 3 more words to describe Iago."</p>
@@ -292,12 +281,8 @@
                 </div>
             </div>
             
-            <!-- === RIGHT COLUMN: WRITING === -->
-            <!-- Added id="writing-section" for print styling -->
             <div id="writing-section" class="space-y-6">
-                <!-- Writing Task Card -->
                 <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                    <!-- Added id="writing-task-title" for print styling -->
                     <h3 id="writing-task-title" class="text-2xl font-bold text-green-800 mb-4">Part 2: Writing Task</h3>
                     <p class="mb-4">Now, write a short diary entry (around 100-150 words) from the perspective of your chosen character. What happened during your day? What are you thinking or feeling?</p>
                     <ul class="list-disc list-inside space-y-2 mb-4">
@@ -307,14 +292,10 @@
                     </ul>
                     <textarea id="writing-input" rows="8" class="w-full border border-stone-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Dear Diary,&#10;Today was..."></textarea>
                     
-                    <!-- Hidden div for printing the textarea content -->
                     <div id="writing-output-print" class="text-stone-800"></div>
                 </div>
 
-                <!-- Writing Feedback Card -->
-                <!-- Added id="feedback-section" for print styling -->
                 <div id="feedback-section" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                    <!-- Added id="feedback-title" for print styling -->
                     <h3 id="feedback-title" class="text-2xl font-bold text-green-800 mb-4 writing-ai-header">AI Writing Feedback</h3>
                     <p class="mb-4 text-sm text-stone-600 writing-ai-header">When you're ready, paste your diary entry above and click the button below to get B2-level feedback from your AI tutor.</p>
                     <button id="get-feedback-btn" class="bg-green-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors w-full">Get Feedback on My Writing</button>
@@ -325,31 +306,24 @@
                     <div id="feedback-output" class="mt-4 text-sm text-stone-700 bg-stone-50 border border-stone-200 p-4 rounded-lg min-h-[50px]"></div>
                 </div>
             </div>
-        </div> <!-- This closes the main content grid -->
-        
-        <!-- Print Button -->
-        <div id="print-btn-container" class="text-center mt-10">
+        </div> <div id="print-btn-container" class="text-center mt-10">
             <button id="print-btn" class="bg-gray-700 text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-800 transition-colors shadow-lg">
                 Print or Save Work (PDF)
             </button>
         </div>
 
 
-        <!-- Footer -->
         <footer class="text-center mt-12 text-stone-500 text-sm">
             <p>✨✍️ Created by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</p>
         </footer>
     </div>
 
-    <!-- === DICE ROLL MODAL === -->
     <div id="dice-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <h2 id="modal-title" class="text-2xl font-bold text-indigo-800 mb-4">Roll for your Character!</h2>
             
-            <!-- Dice structure from your index.html -->
             <div id="dice-container" class="py-4 flex justify-center">
                 <div id="dice-face" class="w-28 h-28 md:w-32 md:h-32 cursor-pointer">
-                    <!-- Image will be set by JS -->
                     <img id="dice-image" alt="Click the dice to roll" class="w-full h-full">
                 </div>
             </div>
